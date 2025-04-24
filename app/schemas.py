@@ -1,6 +1,18 @@
-from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Generic, TypeVar, Dict, Any
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Try to import EmailStr from pydantic, fallback to str if email-validator not installed
+try:
+    from pydantic import BaseModel, EmailStr, Field
+    logger.info("Successfully imported EmailStr from pydantic")
+except ImportError:
+    logger.warning("email-validator not installed. Using str instead of EmailStr")
+    from pydantic import BaseModel, Field
+    # Create a type alias so the rest of the code can still use EmailStr
+    EmailStr = str
 
 # Company schemas
 class CompanyBase(BaseModel):

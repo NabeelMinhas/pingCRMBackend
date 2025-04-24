@@ -1,6 +1,7 @@
 import sys
 import os
 import logging
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -18,12 +19,26 @@ try:
     # Set Vercel flag to ensure we skip SQLite operations in serverless
     os.environ["VERCEL"] = "1"
     
-    # Import the app and create handler
-    from main import app
-    from mangum import Adapter
+    # Try importing the main app with error handling
+    try:
+        from main import app
+        logger.info("Successfully imported main app")
+    except ImportError as e:
+        logger.error(f"Failed to import main app: {str(e)}")
+        
+        # Create a minimal API for fallback
+        from fastapi import FastAPI
+        app = FastAPI(title="PingCRM API [FALLBACK]")
+        
+        @app.get("/")
+        async def fallback_root():
+            return {"status": "error", "message": "Main app import failed", "error": str(e)}
+    
+    # Import mangum correctly
+    import mangum
     
     # Create handler for AWS Lambda (which Vercel uses)
-    handler = Adapter(app)
+    handler = mangum.Mangum(app)
     
     # Simple test function to verify handler works
     def test_handler(event, context):
@@ -37,7 +52,24 @@ except Exception as e:
     
     # Provide a fallback handler that returns the error
     def handler(event, context):
-        return {
-            'statusCode': 500,
-            'body': f'Backend initialization error: {str(e)}'
-        } 
+        # Try to create a JSON response
+        try:
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'body': json.dumps({
+                    'error': str(e),
+                    'traceback': str(sys.exc_info())
+                })
+            }
+        except:
+            # If JSON serialization fails, return a plain text response
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'text/plain'
+                },
+                'body': f'Backend initialization error: {str(e)}'
+            } 
