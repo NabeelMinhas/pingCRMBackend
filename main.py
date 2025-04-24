@@ -2,9 +2,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import contacts, companies
 from app.database import engine, Base
+import os
+from dotenv import load_dotenv
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Load environment variables
+load_dotenv()
+
+# Create database tables - only on traditional servers, not in serverless
+# Skip in production/Vercel environment
+is_vercel = os.environ.get("VERCEL") == "1"
+if not is_vercel:
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="PingCRM API",
@@ -13,9 +21,14 @@ app = FastAPI(
 )
 
 # Configure CORS
+frontend_url = os.environ.get("FRONTEND_URL", "*")
+allowed_origins = [frontend_url]
+if "," in frontend_url:
+    allowed_origins = frontend_url.split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
