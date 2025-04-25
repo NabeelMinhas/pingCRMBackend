@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 This script tests if your FastAPI app will work in Vercel's environment.
 It simulates the imports and environment variables that Vercel would use.
@@ -24,47 +25,47 @@ logger.info("Testing Vercel import compatibility...")
 try:
     # Try importing all the key modules
     from pydantic import EmailStr
-    logger.info("✅ EmailStr import successful")
+    logger.info("[OK] EmailStr import successful")
 except ImportError as e:
-    logger.error(f"❌ EmailStr import failed: {e}")
+    logger.error("[FAIL] EmailStr import failed: {}".format(e))
     sys.exit(1)
 
 try:
     # Try importing the api/index.py handler
     sys.path.append(os.path.abspath("api"))
     from index import handler
-    logger.info("✅ Handler import successful")
+    logger.info("[OK] Handler import successful")
 except Exception as e:
-    logger.error(f"❌ Handler import failed: {e}")
+    logger.error("[FAIL] Handler import failed: {}".format(e))
     sys.exit(1)
 
 try:
     # Try importing the main app
     from main import app
-    logger.info("✅ Main app import successful")
+    logger.info("[OK] Main app import successful")
 except Exception as e:
-    logger.error(f"❌ Main app import failed: {e}")
+    logger.error("[FAIL] Main app import failed: {}".format(e))
     sys.exit(1)
 
 try:
     # Try importing the database module
     from app.database import engine, Base, get_db
-    logger.info("✅ Database module import successful")
+    logger.info("[OK] Database module import successful")
 except Exception as e:
-    logger.error(f"❌ Database module import failed: {e}")
+    logger.error("[FAIL] Database module import failed: {}".format(e))
     sys.exit(1)
 
 try:
     # Try importing schemas
     from app.schemas import CompanyBase, ContactBase
-    logger.info("✅ Schemas import successful")
+    logger.info("[OK] Schemas import successful")
 except Exception as e:
-    logger.error(f"❌ Schemas import failed: {e}")
+    logger.error("[FAIL] Schemas import failed: {}".format(e))
     sys.exit(1)
 
 # Skip handler execution test as it's complex to simulate with a real AWS Lambda context
-logger.info("✅ All import tests passed!")
+logger.info("[OK] All import tests passed!")
 logger.info("NOTE: Handler execution test skipped - this will be tested by Vercel")
 
 logger.info("All tests passed! Your app should work on Vercel.")
-print("\n✅ Your backend is ready for Vercel deployment.") 
+print("\n[OK] Your backend is ready for Vercel deployment.")
